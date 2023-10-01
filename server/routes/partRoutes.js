@@ -3,16 +3,11 @@ const router = express.Router();
 const {
   getParts,
   postPart,
-  putPart,
+  updatePart,
   deletePart
 } = require("../controllers/partController");
 
-router.get("/", getParts);
-
-router.post("/", postPart);
-
-router.put("/:id", putPart);
-
-router.delete("/:id", deletePart);
+router.route("/").get(getParts).post(postPart);
+router.route("/:id").put(updatePart).delete(deletePart);
 
 module.exports = router;
