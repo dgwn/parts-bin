@@ -1,11 +1,12 @@
 const asyncHandler = require("express-async-handler");
 const Part = require("../models/partModel");
+const User = require("../models/userModel");
 
 // @desc    Get parts
 // @route   GET /api/parts
 // @access  Private
 const getParts = asyncHandler(async (req, res) => {
-  const parts = await Part.find({});
+  const parts = await Part.find({ user: req.user._id });
   res.status(200).json(parts);
 });
 
@@ -19,7 +20,8 @@ const postPart = asyncHandler(async (req, res) => {
   }
 
   const part = await Part.create({
-    name: req.body.name
+    name: req.body.name,
+    user: req.user._id
   });
   res.status(200).json({
     part
@@ -34,6 +36,19 @@ const updatePart = asyncHandler(async (req, res) => {
   if (!part) {
     res.status(400);
     throw new Error("Please enter a valid part id");
+  }
+
+  // Check for user
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(401);
+    throw new Error("Please enter a valid user id");
+  }
+
+  // Check if part belongs to user
+  if (part.user.toString() !== user._id.toString()) {
+    res.status(401);
+    throw new Error("Not authorized to update this part");
   }
 
   const updatedPart = await Part.findByIdAndUpdate(req.params.id, req.body, {
@@ -54,6 +69,19 @@ const deletePart = asyncHandler(async (req, res) => {
   if (!part) {
     res.status(400);
     throw new Error("Please enter a valid part id");
+  }
+
+  // Check for user
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(401);
+    throw new Error("Please enter a valid user id");
+  }
+
+  // Check if part belongs to user
+  if (part.user.toString() !== user._id.toString()) {
+    res.status(401);
+    throw new Error("Not authorized to delete this part");
   }
 
   const deleted = await Part.deleteOne(part);
